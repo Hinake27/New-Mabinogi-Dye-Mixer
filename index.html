@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新瑪奇染色混合器（修復版）</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            background: linear-gradient(135deg, #fff5f2 0%, #f8f9fa 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #2d3748;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .color-box {
+            height: 150px;
+            border-radius: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            padding: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .color-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .color-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #ddd;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .color-preview:hover {
+            transform: scale(1.1);
+            border-color: #ff7e5f;
+        }
+        .input-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .input-section.disabled {
+            opacity: 0.75;
+            pointer-events: none;
+        }
+        input[type="text"], input[type="number"] {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 0.5rem;
+            width: 90px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        input[type="text"]:focus, input[type="number"]:focus {
+            border-color: #ff7e5f;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 126, 95, 0.2);
+        }
+        input[type="text"]:disabled, input[type="number"]:disabled {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: #edf2f7;
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #ff7e5f;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(255, 126, 95, 0.3);
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        .toggle-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            border: 2px solid #ff7e5f;
+            cursor: pointer;
+            min-width: 80px;
+            text-align: center;
+            font-weight: bold;
+            user-select: none;
+        }
+        .toggle-btn.active {
+            background-color: #ff7e5f;
+            color: white;
+        }
+        .toggle-btn:not(.active) {
+            background-color: white;
+            color: #ff7e5f;
+        }
+        .toggle-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(255, 126, 95, 0.2);
+        }
+        .color-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            min-width: 120px;
+            text-align: center;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        #warmColor {
+            background: linear-gradient(45deg, #ff7e5f, #feb47b);
+        }
+        #coolColor {
+            background: linear-gradient(45deg, #0190EE, #4FC3F7);
+        }
+        .color-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .harmony-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin-top: 1rem;
+        }
+        .harmony-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .harmony-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #ff7e5f;
+            border-left: 4px solid #ff7e5f;
+            padding-left: 1rem;
+        }
+        .control-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 1rem;
+        }
+        .color-info {
+            margin-top: 0.5rem;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-4xl font-bold mb-6 text-center">新瑪奇染色混合器</h1>
+        
+        <!-- 顏色控制卡片 -->
+        <div class="card">
+            <!-- 顏色 A 控制區 -->
+            <div class="input-section" id="sectionA">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-xl font-bold">顏色 A</h2>
+                    <button id="toggleColorA" class="toggle-btn active">開啟</button>
+                </div>
+                <div class="flex flex-wrap items-center gap-4">
+                    <div>
+                        <label class="block text-sm mb-1">HEX 碼</label>
+                        <input type="text" id="colorInputA" value="#3498DB" maxlength="7">
+                    </div>
+                    <div class="flex gap-2">
+                        <div>
+                            <label class="block text-sm mb-1">R</label>
+                            <input type="number" id="redInputA" min="0" max="255" value="52">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">G</label>
+                            <input type="number" id="greenInputA" min="0" max="255" value="152">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">B</label>
+                            <input type="number" id="blueInputA" min="0" max="255" value="219">
+                        </div>
+                    </div>
+                    <div class="color-preview" id="previewA"></div>
+                </div>
+            </div>
+
+            <!-- 顏色 B 控制區 -->
+            <div class="input-section" id="sectionB">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-xl font-bold">顏色 B</h2>
+                    <button id="toggleColorB" class="toggle-btn active">開啟</button>
+                </div>
+                <div class="flex flex-wrap items-center gap-4">
+                    <div>
+                        <label class="block text-sm mb-1">HEX 碼</label>
+                        <input type="text" id="colorInputB" value="#E74C3C" maxlength="7">
+                    </div>
+                    <div class="flex gap-2">
+                        <div>
+                            <label class="block text-sm mb-1">R</label>
+                            <input type="number" id="redInputB" min="0" max="255" value="231">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">G</label>
+                            <input type="number" id="greenInputB" min="0" max="255" value="76">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">B</label>
+                            <input type="number" id="blueInputB" min="0" max="255" value="60">
+                        </div>
+                    </div>
+                    <div class="color-preview" id="previewB"></div>
+                </div>
+            </div>
+
+            <!-- 色系調整按鈕 -->
+            <div class="control-buttons">
+                <button id="warmColor" class="color-btn">
+                    <i class="fas fa-sun mr-2"></i>暖色系
+                </button>
+                <button id="coolColor" class="color-btn">
+                    <i class="fas fa-snowflake mr-2"></i>冷色系
+                </button>
+            </div>
+
+            <!-- 混合比例控制 -->
+            <div class="input-section">
+                <h2 class="text-xl font-bold mb-3">混合比例</h2>
+                <input type="range" id="mixSlider" min="0" max="100" value="50">
+                <div class="text-center font-bold mt-2">
+                    顏色 A: <span id="ratioA">50</span>% | 
+                    顏色 B: <span id="ratioB">50</span>%
+                </div>
+            </div>
+        </div>
+
+        <!-- 混合結果和協調色展示 -->
+        <div id="output" class="card">
+            <!-- 這裡會由 JavaScript 動態生成內容 -->
+        </div>
+    </div>
+
+[台服 愛麗沙伺服器: Sorina 製作]
+</body>
+<script>
+    // 色彩轉換工具函數
+    const ColorUtils = {
+        hexToRgb(hex) {
+            hex = hex.replace(/^#/, '');
+            return {
+                r: parseInt(hex.substring(0, 2), 16),
+                g: parseInt(hex.substring(2, 4), 16),
+                b: parseInt(hex.substring(4, 6), 16)
+            };
+        },
+
+        rgbToHex(r, g, b) {
+            r = Math.min(255, Math.max(0, Math.round(r)));
+            g = Math.min(255, Math.max(0, Math.round(g)));
+            b = Math.min(255, Math.max(0, Math.round(b)));
+            const toHex = (n) => n.toString(16).padStart(2, '0');
+            return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+        },
+
+        rgbToHsl(r, g, b) {
+            r /= 255;
+            g /= 255;
+            b /= 255;
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+
+            if (max === min) {
+                h = s = 0;
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+
+            return {
+                h: Math.round(h * 360),
+                s: Math.round(s * 100),
+                l: Math.round(l * 100)
+            };
+        },
+
+        hslToRgb(h, s, l) {
+            h /= 360;
+            s /= 100;
+            l /= 100;
+            let r, g, b;
+
+            if (s === 0) {
+                r = g = b = l;
+            } else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1/6) return p + (q - p) * 6 * t;
+                    if (t < 1/2) return q;
+                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                    return p;
+                };
+
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1/3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1/3);
+            }
+
+            return {
+                r: Math.round(r * 255),
+                g: Math.round(g * 255),
+                b: Math.round(b * 255)
+            };
+        },
+
+        adjustColor(rgb, isWarm) {
+            let { r, g, b } = rgb;
+            if (isWarm) {
+                // 暖色系調整 ±40
+                r = Math.min(255, r + 40);
+                g = Math.min(255, g + 20);
+                b = Math.max(0, b - 30);
+            } else {
+                // 冷色系調整 ±40
+                r = Math.max(0, r - 20);
+                g = Math.min(255, g + 40);
+                b = Math.min(255, b + 50);
+            }
+            return { r, g, b };
+        }
+    };
+
+    // UI 控制器
+    class ColorMixer {
+        constructor() {
+            this.initializeElements();
+            this.setupEventListeners();
+            this.updateDisplay();
+        }
+
+        initializeElements() {
+            ['A', 'B'].forEach(prefix => {
+                this[`section${prefix}`] = document.getElementById(`section${prefix}`);
+                this[`toggle${prefix}`] = document.getElementById(`toggleColor${prefix}`);
+                this[`colorInput${prefix}`] = document.getElementById(`colorInput${prefix}`);
+                this[`preview${prefix}`] = document.getElementById(`preview${prefix}`);
+                this[`inputs${prefix}`] = {
+                    red: document.getElementById(`redInput${prefix}`),
+                    green: document.getElementById(`greenInput${prefix}`),
+                    blue: document.getElementById(`blueInput${prefix}`)
+                };
+            });
+
+            this.mixSlider = document.getElementById('mixSlider');
+            this.ratioA = document.getElementById('ratioA');
+            this.ratioB = document.getElementById('ratioB');
+            this.output = document.getElementById('output');
+            this.warmButton = document.getElementById('warmColor');
+            this.coolButton = document.getElementById('coolColor');
+        }
+
+        setupEventListeners() {
+            // 設置顏色開關
+            ['A', 'B'].forEach(prefix => {
+                this[`toggle${prefix}`].addEventListener('click', () => {
+                    const isActive = this[`toggle${prefix}`].classList.toggle('active');
+                    this[`toggle${prefix}`].textContent = isActive ? '開啟' : '關閉';
+                    
+                    Object.values(this[`inputs${prefix}`]).forEach(input => {
+                        input.disabled = !isActive;
+                    });
+                    this[`colorInput${prefix}`].disabled = !isActive;
+                    this[`section${prefix}`].style.opacity = isActive ? '1' : '0.5';
+                    
+                    this.updateDisplay();
+                });
+
+                // 設置顏色輸入事件
+                this[`colorInput${prefix}`].addEventListener('input', (e) => {
+                    if (!e.target.disabled && /^#[0-9A-Fa-f]{6}$/.test(e.target.value)) {
+                        const rgb = ColorUtils.hexToRgb(e.target.value);
+                        Object.entries(rgb).forEach(([key, value]) => {
+                            this[`inputs${prefix}`][key === 'r' ? 'red' : key === 'g' ? 'green' : 'blue'].value = value;
+                        });
+                        this.updateColorPreview(prefix);
+                        this.updateDisplay();
+                    }
+                });
+
+                // 設置 RGB 輸入事件
+                Object.values(this[`inputs${prefix}`]).forEach(input => {
+                    input.addEventListener('input', () => {
+                        if (!input.disabled) {
+                            this.updateColorPreview(prefix);
+                            this.updateDisplay();
+                        }
+                    });
+                });
+            });
+
+            // 設置混合比例滑桿
+            this.mixSlider.addEventListener('input', () => this.updateDisplay());
+
+            // 設置冷暖色系按鈕
+            this.warmButton.addEventListener('click', () => this.adjustTemperature(true));
+            this.coolButton.addEventListener('click', () => this.adjustTemperature(false));
+        }
+
+        getColorValues(prefix) {
+            return {
+                r: parseInt(this[`inputs${prefix}`].red.value) || 0,
+                g: parseInt(this[`inputs${prefix}`].green.value) || 0,
+                b: parseInt(this[`inputs${prefix}`].blue.value) || 0
+            };
+        }
+
+        updateColorPreview(prefix) {
+            const rgb = this.getColorValues(prefix);
+            const hex = ColorUtils.rgbToHex(rgb.r, rgb.g, rgb.b);
+            this[`preview${prefix}`].style.backgroundColor = hex;
+            this[`colorInput${prefix}`].value = hex;
+        }
+
+        adjustTemperature(isWarm) {
+            const currentColor = this.getColorValues('A');
+            const newColor = ColorUtils.adjustColor(currentColor, isWarm);
+            
+            Object.entries(newColor).forEach(([key, value]) => {
+                this.inputsA[key === 'r' ? 'red' : key === 'g' ? 'green' : 'blue'].value = value;
+            });
+            
+            this.updateColorPreview('A');
+            this.updateDisplay();
+        }
+
+        mixColors(colorA, colorB, ratio) {
+            const toggleA = this.toggleA.classList.contains('active');
+            const toggleB = this.toggleB.classList.contains('active');
+
+            if (!toggleA && !toggleB) return { r: 128, g: 128, b: 128 }; // 灰色
+            if (!toggleA) return colorB;
+            if (!toggleB) return colorA;
+
+            const ratioA = ratio / 100;
+            const ratioB = 1 - ratioA;
+            
+            return {
+                r: Math.round(colorA.r * ratioA + colorB.r * ratioB),
+                g: Math.round(colorA.g * ratioA + colorB.g * ratioB),
+                b: Math.round(colorA.b * ratioA + colorB.b * ratioB)
+            };
+        }
+
+        generateHarmonies(rgb) {
+            const hsl = ColorUtils.rgbToHsl(rgb.r, rgb.g, rgb.b);
+            return {
+                complementary: ColorUtils.hslToRgb((hsl.h + 180) % 360, hsl.s, hsl.l),
+                analogous: [
+                    ColorUtils.hslToRgb((hsl.h + 30) % 360, hsl.s, hsl.l),
+                    ColorUtils.hslToRgb((hsl.h - 30 + 360) % 360, hsl.s, hsl.l)
+                ],
+                triadic: [
+                    ColorUtils.hslToRgb((hsl.h + 120) % 360, hsl.s, hsl.l),
+                    ColorUtils.hslToRgb((hsl.h + 240) % 360, hsl.s, hsl.l)
+                ],
+                splitComplementary: [
+                    ColorUtils.hslToRgb((hsl.h + 150) % 360, hsl.s, hsl.l),
+                    ColorUtils.hslToRgb((hsl.h + 210) % 360, hsl.s, hsl.l)
+                ]
+            };
+        }
+
+        updateDisplay() {
+            const ratio = parseInt(this.mixSlider.value);
+            this.ratioA.textContent = ratio;
+            this.ratioB.textContent = 100 - ratio;
+
+            const colorA = this.getColorValues('A');
+            const colorB = this.getColorValues('B');
+            const mixed = this.mixColors(colorA, colorB, ratio);
+            const harmonies = this.generateHarmonies(mixed);
+
+            this.output.innerHTML = this.generateDisplayHTML(colorA, colorB, mixed, harmonies, ratio);
+        }
+
+        generateDisplayHTML(colorA, colorB, mixed, harmonies, ratio) {
+            const mixedHex = ColorUtils.rgbToHex(mixed.r, mixed.g, mixed.b);
+            let html = `
+                <div class="harmony-grid mb-6">
+                    <div class="color-box" style="background-color: ${ColorUtils.rgbToHex(colorA.r, colorA.g, colorA.b)}">
+                        <div>顏色 A (${ratio}%)</div>
+                        <div class="color-info">
+                            <div>${ColorUtils.rgbToHex(colorA.r, colorA.g, colorA.b)}</div>
+                            <div>RGB(${colorA.r}, ${colorA.g}, ${colorA.b})</div>
+                        </div>
+                    </div>
+                    <div class="color-box" style="background-color: ${mixedHex}">
+                        <div>混合結果</div>
+                        <div class="color-info">
+                            <div>${mixedHex}</div>
+                            <div>RGB(${mixed.r}, ${mixed.g}, ${mixed.b})</div>
+                        </div>
+                    </div>
+                    <div class="color-box" style="background-color: ${ColorUtils.rgbToHex(colorB.r, colorB.g, colorB.b)}">
+                        <div>顏色 B (${100-ratio}%)</div>
+                        <div class="color-info">
+                            <div>${ColorUtils.rgbToHex(colorB.r, colorB.g, colorB.b)}</div>
+                            <div>RGB(${colorB.r}, ${colorB.g}, ${colorB.b})</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="harmony-section">
+                    <div class="harmony-title">A. 互補色配色</div>
+                    <div class="harmony-grid">
+                        <div class="color-box" style="background-color: ${mixedHex}">
+                            <div>基準色</div>
+                            <div class="color-info">
+                                <div>${mixedHex}</div>
+                                <div>RGB(${mixed.r}, ${mixed.g}, ${mixed.b})</div>
+                            </div>
+                        </div>
+                        <div class="color-box" style="background-color: ${ColorUtils.rgbToHex(harmonies.complementary.r, harmonies.complementary.g, harmonies.complementary.b)}">
+                            <div>互補色</div>
+                            <div class="color-info">
+                                <div>${ColorUtils.rgbToHex(harmonies.complementary.r, harmonies.complementary.g, harmonies.complementary.b)}</div>
+                                <div>RGB(${harmonies.complementary.r}, ${harmonies.complementary.g}, ${harmonies.complementary.b})</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="harmony-section">
+                    <div class="harmony-title">B. 類似色配色</div>
+                    <div class="harmony-grid">
+                        ${harmonies.analogous.map((color, i) => `
+                            <div class="color-box" style="background-color: ${ColorUtils.rgbToHex(color.r, color.g, color.b)}">
+                                <div>類似色 ${i + 1}</div>
+                                <div class="color-info">
+                                    <div>${ColorUtils.rgbToHex(color.r, color.g, color.b)}</div>
+                                    <div>RGB(${color.r}, ${color.g}, ${color.b})</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                        <div class="color-box" style="background-color: ${mixedHex}">
+                            <div>基準色</div>
+                            <div class="color-info">
+                                <div>${mixedHex}</div>
+                                <div>RGB(${mixed.r}, ${mixed.g}, ${mixed.b})</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="harmony-section">
+                    <div class="harmony-title">C. 三角色配色</div>
+                    <div<div class="harmony-grid">
+                        <div class="color-box" style="background-color: ${mixedHex}">
+                            <div>基準色</div>
+                            <div class="color-info">
+                                <div>${mixedHex}</div>
+                                <div>RGB(${mixed.r}, ${mixed.g}, ${mixed.b})</div>
+                            </div>
+                        </div>
+                        ${harmonies.triadic.map((color, i) => `
+                            <div class="color-box" style="background-color: ${ColorUtils.rgbToHex(color.r, color.g, color.b)}">
+                                <div>三角色 ${i + 1}</div>
+                                <div class="color-info">
+                                    <div>${ColorUtils.rgbToHex(color.r, color.g, color.b)}</div>
+                                    <div>RGB(${color.r}, ${color.g}, ${color.b})</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="harmony-section">
+                    <div class="harmony-title">D. 分裂互補色配色</div>
+                    <div class="harmony-grid">
+                        <div class="color-box" style="background-color: ${mixedHex}">
+                            <div>基準色</div>
+                            <div class="color-info">
+                                <div>${mixedHex}</div>
+                                <div>RGB(${mixed.r}, ${mixed.g}, ${mixed.b})</div>
+                            </div>
+                        </div>
+                        ${harmonies.splitComplementary.map((color, i) => `
+                            <div class="color-box" style="background-color: ${ColorUtils.rgbToHex(color.r, color.g, color.b)}">
+                                <div>分裂色 ${i + 1}</div>
+                                <div class="color-info">
+                                    <div>${ColorUtils.rgbToHex(color.r, color.g, color.b)}</div>
+                                    <div>RGB(${color.r}, ${color.g}, ${color.b})</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            return html;
+        }
+    }
+
+    // 初始化
+    window.onload = function() {
+        window.colorMixer = new ColorMixer();
+    };
+</script>
+</body>
+</html>
