@@ -8,5 +8,5 @@
 
 5.搜尋到的顏色不一定可以在碼奇染色盤內使用可以自行微調一下混和比例或者在附近區塊找相似顏色
 
-6.台服 愛麗沙伺服器: Sorina 製作
+6.台服 愛麗沙伺服器: Sorina 製作 https://hinake27.github.io/New-Mabinogi-Dye-Mixer/
 
